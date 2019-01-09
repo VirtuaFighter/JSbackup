@@ -1,0 +1,259 @@
+    <!DOCTYPE html> 
+    <!---
+    SPEC
+    Set up the canvas 
+    Set score to zero 
+    Create snake 
+    Create apple
+    
+    Every 100 milliseconds {
+        Clear the canvas
+        Draw current score on the screen  
+        Move snake in current direction  
+        If snake collides with wall or itself {
+            End the game
+        } Else If snake eats an apple {
+            Add one to score
+            Move apple to new location
+            Make snake longer
+        } 
+        For each segment of the snake {
+            Draw the segment  
+        }  
+        Draw apple  
+        Draw border 
+    }
+        
+    When the user presses a key {
+        If the key is an arrow {
+            Update the direction of the snake
+        }
+    }
+    
+    -->
+    <html>
+        <head>
+            <title>Snake</title>
+        </head>
+        <body>
+
+            <canvas id="canvas" width="400" height="400"></canvas>
+
+            <script src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+            <script>
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+
+                var canvasWidth = canvas.width;
+                var canvasHeight = canvas.height;
+
+                //creating a grid of blockSize squares
+                var blockSize = 10;
+                var widthInBlocks = canvasWidth / blockSize;
+                var heightInBlocks = canvasHeight / blockSize;
+                 
+                var score = 0;
+
+                function drawBorder() {
+                    ctx.fillStyle = "Gray";
+                    ctx.fillRect(0,0, canvasWidth, blockSize);
+                    ctx.fillRect(0,canvasHeight - blockSize, canvasWidth, blockSize);
+                    ctx.fillRect(0,0, blockSize, canvasHeight);
+                    ctx.fillRect(canvasWidth - blockSize,0, blockSize, canvasHeight);
+                };
+                
+                function drawScore() {
+                    ctx.font = "20px Courier";
+                    ctx.fillStyle = "Black";
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "top";
+                    ctx.fillText("Score: " + score, blockSize, blockSize);
+                };
+
+                var gameOver = function () {
+                    //use ClearInvervall to stop the SetInterval:
+                    clearInterval(intervalId);
+
+                    ctx.font = "60px Courier";
+                    ctx.fillStyle = "Black";
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText("Game over", canvasWidth/2, canvasHeight/2);
+                };
+
+                function circle (x,y,radius, fillCircle) {
+                    ctx.beginPath();
+                    ctx.arc(x,y, radius, 0, Math.PI * 2, false);
+
+                    if (fillCircle) {
+                        ctx.fill();
+                    } else {
+                        ctx.stroke();
+                    }
+                };
+
+                //Block contstructor
+                var Block = function(col,row) {
+                    this.col = col;
+                    this.row = row;
+                };
+                //add methods to Block object
+                Block.prototype.draw = function(color) {
+                    var x = this.col * blockSize;
+                    var y = this.row * blockSize;
+
+                    ctx.fillStyle = color;
+                    ctx.fillRect(x, y, blockSize, blockSize);
+                };
+                
+                Block.prototype.drawCircle = function(color) {
+                    ctx.fillStyle = color;
+                    circle(this.col * blockSize + blockSize/2, this.row * blockSize + blockSize/2, blockSize/2, true);
+                };
+
+                Block.prototype.equal = function(otherBlock) {
+                    //function to see if the 2 blocks are at the same location
+                    //return true / false
+                    return this.col === otherBlock.col && this.row === otherBlock.row;
+                };
+
+                //Snake constructor
+                var Snake = function() {
+                    this.segments = [
+                        new Block(7, 5),
+                        new Block(6, 5),
+                        new Block(5, 5)
+                    ];
+                    this.direction = "right";
+                    this.nextDirection = "right";
+                    /*note: The snake's direction propety will be updated exactly once for each step in the animation, 
+                    since the move method is called once per animation step. The nextDirection property, on the other hand,
+                    will be updated anytime the player presses an arrow key (so if they press the keys really fast, this property 
+                    could theoretically change multiple times per animation step). By keeping these two properties separate, we 
+                    make sure the snake can't turn back on itself if the player presses two arrow keys very quickly between two 
+                    steps in the animation
+                    */
+                };
+                // add methods to Snake
+                Snake.prototype.draw = function() {
+                    for (let i = 0; i < this.segments.length; i++) {
+                        this.segments[i].draw("Blue");
+                    }
+                };
+
+                Snake.prototype.move = function () {
+                    var head = this.segments[0];
+                    var newHead;
+
+                    this.direction = this.nextDirection;
+
+                    switch (this.direction) {
+                        case "right":
+                            newHead = new Block(head.col + 1, head.row);
+                            break;
+                        case "down":
+                            newHead = new Block(head.col, head.row + 1);
+                            break;
+                        case "left":
+                            newHead = new Block(head.col - 1, head.row);
+                            break;
+                        case "up":
+                            newHead = new Block(head.col, head.row - 1);   
+                    };
+
+                    if (this.checkCollision(newHead)) {
+                        gameOver();
+                        return;
+                    }
+
+                    // Apparently unshift will add element to the head of an array
+                    this.segments.unshift(newHead);
+
+                    if (newHead.equal(apple.position)) {
+                        score++;
+                        apple.move();
+                    } else {
+                        //i.e. remove the last block to keep the length the same
+                        this.segments.pop();
+                    }
+                };
+
+                Snake.prototype.checkCollision = function (head) {
+                    var leftCollision = (head.col == 0);
+                    var topCollision = (head.row == 0);
+                    var rightCollision = (head.col == widthInBlocks - 1); //-1 since we start with 0
+                    var bottomCollision = (head.row == heightInBlocks - 1);
+
+                    var wallCollision = leftCollision || topCollision || rightCollision || bottomCollision;
+                    
+                    var selfCollision = false;
+
+                    for (let i = 0; i < this.segments.length; i++) {
+                        if (head.equal(this.segments[i])) {
+                            selfCollision = true;
+                        }
+                    }
+
+                    return wallCollision || selfCollision;
+                };
+
+                Snake.prototype.setDirection = function (newDirection) {
+                    //return if illegal direction
+                    if (this.direction === "up" && newDirection === "down") {
+                        return;
+                    } else if (this.direction === "right" && newDirection === "left") {
+                        return;
+                    } else if (this.direction === "down" && newDirection === "up") {
+                        return;
+                    } else if (this.direction === "left" && newDirection === "right") {
+                        return;
+                    }
+                    this.nextDirection = newDirection;
+                };
+
+                //Apple constructor
+                var Apple = function() {
+                    this.position = new Block(10,10);
+                }
+                //Apple methods
+                Apple.prototype.draw = function() {
+                    this.position.drawCircle("LimeGreen");
+                };
+                Apple.prototype.move = function() {
+                    var randomCol = Math.floor(Math.random() * (widthInBlocks -2)) + 1;
+                    //Note: - 2 becasue the edge is taken up by the walls.
+                    var randomRow = Math.floor(Math.random() * (heightInBlocks -2)) + 1;
+                    this.position = new Block(randomCol, randomRow);
+                };
+
+                var snake = new Snake();
+                var apple = new Apple();
+
+                var intervalId = setInterval(function() {
+                    ctx.clearRect(0,0,canvasWidth,canvasHeight);              
+                    drawScore();
+                    snake.move();
+                    snake.draw();
+                    apple.draw();
+                    drawBorder();
+                }, 100);
+
+                var keyActions = {
+                    37: "left",
+                    38: "up",
+                    39: "right",
+                    40: "down",
+                };
+
+                //Keydown Event Handler
+                $("body").keydown(function (event) {
+                    var newDirection = keyActions[event.keyCode];
+                    if (newDirection !== undefined) {
+                        snake.setDirection(newDirection);
+                    }
+                });
+                
+            </script>
+        </body>
+    </html> 

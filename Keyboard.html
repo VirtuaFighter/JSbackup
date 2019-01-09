@@ -1,0 +1,36 @@
+    <!DOCTYPE html> 
+    <html>
+        <head>
+            <title>Bouncing Ball</title>
+        </head>
+        <body>
+
+            <canvas id="canvas" width="400" height="400"></canvas>
+
+            <script	src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+            <script>
+
+
+                //creating a object keyNames to make the keycode easier to work with
+                var keyNames = {
+                    32: "space",
+                    37: "left",
+                    38: "up",
+                    39: "right",
+                    40: "down",
+                    13: "enter",
+                    16: "shift",
+                    18: "alt",
+                    27: "esc"
+                };
+
+                //Keydown Event Handler
+                $("body").keydown(function (event) {
+                    //this show us the keyCode in console
+                    console.log(keyNames[event.keyCode]);
+                    console.log(event.keyCode);
+                });
+            </script>
+        </body>
+    </html> 

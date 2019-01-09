@@ -1,0 +1,88 @@
+    <!DOCTYPE html> 
+    <html>
+        <head>
+            <title>Canvas</title>
+        </head>
+        <body>
+
+            <canvas id="canvas" width="200" height="200"></canvas>
+
+            <script>
+                var canvas = document.getElementById("canvas");
+                var ctx = canvas.getContext("2d");
+
+                ctx.clearRect(0,0,200,200);
+
+                function sleep(milliseconds) {
+                    var start = new Date().getTime();
+                    for (var i = 0; i < 1e7; i++) {
+                        if ((new Date().getTime() - start) > milliseconds){
+                        break;
+                        }
+                    }
+                }
+
+                function circle (x,y,radius, fillCircle) {
+                    ctx.beginPath();
+                    ctx.arc(x,y, radius, 0, Math.PI * 2, false);
+
+                    if (fillCircle) {
+                        ctx.fill();
+                    } else {
+                        ctx.stroke();
+                    }
+                };
+
+                function drawBee (x,y) {
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = "Black";
+                    ctx.fillStyle = "Gold";
+
+                    circle (x,y, 8, true);
+                    circle (x,y, 8, false);
+                    circle (x -5, y -11, 5, false);
+                    circle (x +5, y -11, 5, false);
+                    circle (x -2, y -1, 2, false);
+                    circle (x +2, y -1, 2, false);             
+                }
+            
+                function update (coordinate) {
+                    //this line give us a random number from -2 to 2,
+                    //since Math.random = 0 to 1. Times 4 gives 0 to 4. -2 gives -2 to 2.
+                    var offset = Math.random() * 4 -2;
+
+                    //amplify offset
+                    offset *= 10;
+
+                    //update coordinate position
+                    coordinate += offset;
+
+                    //stop it from going out of bounds
+                    if (coordinate > 200) {
+                        coordinate = 200;
+                    }
+                    if (coordinate < 0) {
+                        coordinate = 0;
+                    }
+
+                    //return the date
+                    return coordinate;
+                }
+
+                //starting poistion
+                var CoordinateX = 100;
+                var CoordinateY = 100;
+
+
+                setInterval(function() {
+                    ctx.clearRect(0,0,200,200);
+                
+                    drawBee(update(CoordinateX), update(CoordinateY));                
+               
+                    //draw a boundary rectangle so it is easier to see
+                    ctx.strokeRect(0,0, 200,200);
+                }, 30);
+
+            </script>
+        </body>
+    </html> 
