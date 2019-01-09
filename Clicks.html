@@ -1,0 +1,34 @@
+<!DOCTYPE html> 
+<html>
+    <head>
+        <title>Interactive	programming</title>
+    </head>
+    <body>
+        <h1	id="heading">Hello animated world!</h1>
+
+        <script	src="https://code.jquery.com/jquery-2.1.0.js"></script>
+
+        <script>
+            var leftOffSet = 0;
+            var rightMargin = 200;
+
+            function moveHeading() {
+                $("#heading").offset({ left: leftOffSet})
+                
+                leftOffSet++
+                
+                if (leftOffSet > rightMargin) {
+                    leftOffSet = 0;
+                }
+            };
+
+            function clickHandler(event) {
+                console.log("Click! " + event.pageX + " " + event.pageY);
+                $("#heading").text("Click! " + event.pageX + " " + event.pageY);
+            };
+            $("#heading").click(clickHandler);
+            setInterval(moveHeading, 30);
+
+        </script>
+    </body>
+</html> 
